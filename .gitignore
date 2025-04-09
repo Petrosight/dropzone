@@ -6,7 +6,6 @@ node_modules
 _site
 _config.yaml
 .idea
-dist
 .parcel-cache
 
 # The GitLab pages artifacts
