@@ -3,6 +3,7 @@ import Emitter from "./emitter";
 import defaultOptions from "./options";
 
 export default class Dropzone extends Emitter {
+  _processedFolders;
   static initClass() {
     // Exposing the emitter class, mainly for tests
     this.prototype.Emitter = Emitter;
@@ -280,6 +281,7 @@ export default class Dropzone extends Emitter {
     }
 
     this.URL = window.URL !== null ? window.URL : window.webkitURL;
+    this._processedFolders = {};
 
     // Setup all event listeners on the Dropzone object itself.
     // They're not in @setupEventListeners() because they shouldn't be removed
@@ -612,6 +614,7 @@ export default class Dropzone extends Emitter {
     if (!e.dataTransfer) {
       return;
     }
+    this._processedFolders = {};
     this.emit("drop", e);
 
     // Convert the FileList to an Array
@@ -692,6 +695,9 @@ export default class Dropzone extends Emitter {
   // Goes through the directory, and adds each file it finds recursively
   _addFilesFromDirectory(directory, path) {
     let dirReader = directory.createReader();
+    if (!this._processedFolders?.[path]) {
+      this._processedFolders[path] = 0;
+    }
 
     let errorHandler = (error) =>
       __guardMethod__(console, "log", (o) => o.log(error));
@@ -709,9 +715,11 @@ export default class Dropzone extends Emitter {
                   return;
                 }
                 file.fullPath = `${path}/${file.name}`;
+                this._processedFolders[path]++;
                 return this.addFile(file);
               });
             } else if (entry.isDirectory) {
+              this._processedFolders[path]++;
               this._addFilesFromDirectory(entry, `${path}/${entry.name}`);
             }
           }
